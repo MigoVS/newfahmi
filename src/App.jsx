@@ -1,29 +1,41 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import "./index.css";
-import Home from "./Pages/Home";
-import About from "./Pages/About";
-import AnimatedBackground from "./components/Background";
-import Navbar from "./components/Navbar";
-import Portofolio from "./Pages/Portofolio";
-import ContactPage from "./Pages/Contact";
-import ProjectDetails from "./components/ProjectDetail";
-import WelcomeScreen from "./Pages/WelcomeScreen";
+
+// Lazy load components untuk menghindari error saat build
+const Home = lazy(() => import("./Pages/Home"));
+const About = lazy(() => import("./Pages/About"));
+const AnimatedBackground = lazy(() => import("./components/Background"));
+const Navbar = lazy(() => import("./components/Navbar"));
+const Portofolio = lazy(() => import("./Pages/Portofolio"));
+const ContactPage = lazy(() => import("./Pages/Contact"));
+const ProjectDetails = lazy(() => import("./components/ProjectDetail"));
+const WelcomeScreen = lazy(() => import("./Pages/WelcomeScreen"));
+const NotFoundPage = lazy(() => import("./Pages/404"));
+
+// Import AnimatePresence
 import { AnimatePresence } from 'framer-motion';
-import notfound from "./Pages/404";
-import NotFoundPage from "./Pages/404";
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-black">
+    <div className="text-white text-xl">Loading...</div>
+  </div>
+);
 
 const LandingPage = ({ showWelcome, setShowWelcome }) => {
   return (
     <>
       <AnimatePresence mode="wait">
         {showWelcome && (
-          <WelcomeScreen onLoadingComplete={() => setShowWelcome(false)} />
+          <Suspense fallback={<LoadingFallback />}>
+            <WelcomeScreen onLoadingComplete={() => setShowWelcome(false)} />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {!showWelcome && (
-        <>
+        <Suspense fallback={<LoadingFallback />}>
           <Navbar />
           <AnimatedBackground />
           <Home />
@@ -34,28 +46,28 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
             <center>
               <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
               <span className="block text-sm pb-4 text-gray-500 text-center dark:text-gray-400">
-                © 2025{" "}
+                © 2026{" "}
                 <a href="https://flowbite.com/" className="hover:underline">
-                  EkiZR™
+                  NABEEL™
                 </a>
                 . All Rights Reserved.
               </span>
             </center>
           </footer>
-        </>
+        </Suspense>
       )}
     </>
   );
 };
 
 const ProjectPageLayout = () => (
-  <>
+  <Suspense fallback={<LoadingFallback />}>
     <ProjectDetails />
     <footer>
       <center>
         <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
         <span className="block text-sm pb-4 text-gray-500 text-center dark:text-gray-400">
-          © 2023{" "}
+          © 2025{" "}
           <a href="https://flowbite.com/" className="hover:underline">
             EkiZR™
           </a>
@@ -63,7 +75,7 @@ const ProjectPageLayout = () => (
         </span>
       </center>
     </footer>
-  </>
+  </Suspense>
 );
 
 function App() {
@@ -71,11 +83,16 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage showWelcome={showWelcome} setShowWelcome={setShowWelcome} />} />
-        <Route path="/project/:id" element={<ProjectPageLayout />} />
-         <Route path="*" element={<NotFoundPage />} /> {/* Ini route 404 */}
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route 
+            path="/" 
+            element={<LandingPage showWelcome={showWelcome} setShowWelcome={setShowWelcome} />} 
+          />
+          <Route path="/project/:id" element={<ProjectPageLayout />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
